@@ -1,1 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECS Fargate | Modern Deployment</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="flip-card" id="mainCard">
+            <div class="flip-card-inner">
+                <!-- Front Side -->
+                <div class="flip-card-front">
+                    <div class="card-content">
+                        <div class="aws-logo">
+                            <svg viewBox="0 0 24 24" width="48" height="48" fill="currentColor">
+                                <path
+                                    d="M12.5 13.5c-.8 0-1.5-.2-2.1-.7-.6-.5-.9-1.2-1-2h2.2c.1.4.3.7.5.9.3.2.6.3.9.3.4 0 .7-.1.9-.3.2-.2.3-.5.3-.8 0-.3-.1-.5-.4-.7-.2-.2-.6-.3-1.1-.4-1.1-.3-1.9-.6-2.4-1-.5-.4-.7-1-.7-1.8 0-.8.3-1.5.9-2 .6-.5 1.5-.8 2.5-.8 1 0 1.8.2 2.4.7s.9 1.1 1 1.9H13.6c-.1-.4-.2-.6-.5-.8-.2-.1-.5-.2-.8-.2s-.6.1-.8.2c-.2.1-.3.3-.3.6 0 .3.1.5.3.6.2.1.7.3 1.3.4 1 .3 1.8.6 2.3.9.5.4.8 1 .8 1.8 0 .9-.3 1.6-1 2.1-.7.6-1.5.8-2.6.8zM2.8 12.5h2.1l2.5-9h-2l-1.5 6.3-1.5-6.3h-2.1l2.5 9zm16.4-9l-2.5 9h2.1l1.5-6.3 1.5 6.3h2.1l-2.5-9h-2.2z" />
+                            </svg>
+                        </div>
+                        <h1 id="title-text">ECS Fargate</h1>
+                        <p class="subtitle">Secure, Serverless Containers</p>
+                        <div class="developer-tag">By Thamindu Kavinda</div>
+                        <div class="shine"></div>
+                    </div>
+                </div>
+                <!-- Back Side -->
+                <div class="flip-card-back">
+                    <div class="card-content">
+                        <div class="status-indicator">
+                            <span class="dot pulse"></span>
+                            <span class="status-text">Live Status</span>
+                        </div>
+                        <h2>Deployment Info</h2>
+                        <p class="deployment-text">
+                            The Flask application is running on <strong>port 8080</strong> and delivers smooth
+                            deployments with reliable performance using <strong>AWS ECS Fargate</strong>.
+                        </p>
+                        <div class="specs">
+                            <span>Reliability: 99.9%</span>
+                            <span>Auto-scaling: Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="hint">Hover or click to flip</p>
+    </div>
+    <script src="script.js"></script>
+</body>
+
+</html>
