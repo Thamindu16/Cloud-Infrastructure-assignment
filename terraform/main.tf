@@ -23,11 +23,6 @@ variable "project_name" {
   default = "ecs-fargate-cicd-terraform"
 }
 
-variable "github_repo" {
-  description = "GitHub repo in OWNER/REPO format"
-  type        = string
-}
-
 variable "container_image" {
   description = "ECR image URI"
   type        = string
@@ -93,14 +88,6 @@ module "ecs" {
 }
 
 ################################
-# CloudWatch Logs
-################################
-resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs/${var.project_name}"
-  retention_in_days = 7
-}
-
-################################
 # ECS Task Definition
 ################################
 resource "aws_ecs_task_definition" "app" {
@@ -128,7 +115,7 @@ resource "aws_ecs_task_definition" "app" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = aws_cloudwatch_log_group.ecs.name
+          awslogs-group         = "/ecs/${var.project_name}"
           awslogs-region        = "eu-north-1"
           awslogs-stream-prefix = "ecs"
         }
@@ -138,7 +125,7 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 ################################
-# ECS Service (Fargate)
+# ECS Service
 ################################
 resource "aws_ecs_service" "app" {
   name            = var.project_name
