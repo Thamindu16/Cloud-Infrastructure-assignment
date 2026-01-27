@@ -56,4 +56,5 @@ jobs:
         run: |
           terraform apply -auto-approve \
             -var="github_repo=Thamindu16/Cloud-Infrastructure-assignment" \
-            -var="container_image=${{ env.IMAGE_URI }}"
+            -var="container_image=${{ env.IMAGE_URI }}" \
+            -var="ecs_task_execution_role_arn=arn:aws:iam::171534373753:role/ecsTaskExecutionRole"
