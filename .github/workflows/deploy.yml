@@ -11,7 +11,6 @@ permissions:
 
 env:
   AWS_REGION: eu-north-1
-  PROJECT_NAME: ecs-fargate-cicd-terraform
   ECR_REPOSITORY: ecs-fargate-cicd-terraform
 
 jobs:
@@ -26,23 +25,21 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::171534373753:role/git-actions
-          aws-region: ${{ env.AWS_REGION }}
+          aws-region: eu-north-1
 
       - name: Verify AWS identity
         run: aws sts get-caller-identity
 
       - name: Login to Amazon ECR
-        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push Docker image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
-          echo "IMAGE_URI=$ECR_REGISTRY/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_ENV
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG .
+          docker push ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG
+          echo "IMAGE_URI=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:$IMAGE_TAG" >> $GITHUB_ENV
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -55,6 +52,5 @@ jobs:
         working-directory: terraform
         run: |
           terraform apply -auto-approve \
-            -var="github_repo=Thamindu16/Cloud-Infrastructure-assignment" \
             -var="container_image=${{ env.IMAGE_URI }}" \
             -var="ecs_task_execution_role_arn=arn:aws:iam::171534373753:role/ecsTaskExecutionRole"
