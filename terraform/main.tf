@@ -85,6 +85,9 @@ module "ecs" {
   version = "5.11.4"
 
   cluster_name = "${var.project_name}-cluster"
+
+  # 🔑 IMPORTANT FIX
+  create_cloudwatch_log_group = false
 }
 
 ################################
