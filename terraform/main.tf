@@ -37,10 +37,9 @@ variable "container_port" {
   default = 8080
 }
 
-variable "github_role_arn" {
-  description = "Existing GitHub Actions IAM Role ARN"
+variable "ecs_task_execution_role_arn" {
+  description = "Existing ECS Task Execution Role ARN"
   type        = string
-  default     = "arn:aws:iam::171534373753:role/git-actions"
 }
 
 ################################
@@ -84,17 +83,6 @@ resource "aws_security_group" "ecs" {
 }
 
 ################################
-# ECR
-################################
-resource "aws_ecr_repository" "app" {
-  name = var.project_name
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-}
-
-################################
 # ECS Cluster
 ################################
 module "ecs" {
@@ -102,31 +90,6 @@ module "ecs" {
   version = "5.11.4"
 
   cluster_name = "${var.project_name}-cluster"
-}
-
-################################
-# ECS Task Execution Role
-################################
-resource "aws_iam_role" "ecs_task_execution" {
-  name = "${var.project_name}-task-execution"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        }
-        Action = "sts:AssumeRole"
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_execution_policy" {
-  role       = aws_iam_role.ecs_task_execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
 ################################
@@ -146,7 +109,8 @@ resource "aws_ecs_task_definition" "app" {
   network_mode             = "awsvpc"
   cpu                      = 256
   memory                   = 512
-  execution_role_arn       = aws_iam_role.ecs_task_execution.arn
+
+  execution_role_arn = var.ecs_task_execution_role_arn
 
   container_definitions = jsonencode([
     {
@@ -196,14 +160,6 @@ resource "aws_ecs_service" "app" {
 ################################
 # Outputs
 ################################
-output "ecr_repo_url" {
-  value = aws_ecr_repository.app.repository_url
-}
-
 output "ecs_cluster_name" {
   value = module.ecs.cluster_name
-}
-
-output "github_role_arn" {
-  value = var.github_role_arn
 }
