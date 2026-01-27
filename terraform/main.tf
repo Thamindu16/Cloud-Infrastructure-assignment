@@ -37,6 +37,13 @@ variable "ecs_task_execution_role_arn" {
   type        = string
 }
 
+# 🔧 FIX: GitHub Actions error fix
+variable "github_repo" {
+  description = "GitHub repository name"
+  type        = string
+  default     = ""
+}
+
 ################################
 # VPC
 ################################
@@ -88,6 +95,14 @@ module "ecs" {
 }
 
 ################################
+# CloudWatch Logs
+################################
+resource "aws_cloudwatch_log_group" "ecs" {
+  name              = "/ecs/${var.project_name}"
+  retention_in_days = 7
+}
+
+################################
 # ECS Task Definition
 ################################
 resource "aws_ecs_task_definition" "app" {
@@ -115,7 +130,7 @@ resource "aws_ecs_task_definition" "app" {
       logConfiguration = {
         logDriver = "awslogs"
         options = {
-          awslogs-group         = "/ecs/${var.project_name}"
+          awslogs-group         = aws_cloudwatch_log_group.ecs.name
           awslogs-region        = "eu-north-1"
           awslogs-stream-prefix = "ecs"
         }
