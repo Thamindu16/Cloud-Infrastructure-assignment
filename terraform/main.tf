@@ -63,6 +63,7 @@ resource "aws_security_group" "ecs" {
   vpc_id = module.vpc.vpc_id
 
   ingress {
+    description = "Allow app traffic"
     from_port   = var.container_port
     to_port     = var.container_port
     protocol    = "tcp"
@@ -78,6 +79,14 @@ resource "aws_security_group" "ecs" {
 }
 
 ################################
+# CloudWatch Log Group
+################################
+resource "aws_cloudwatch_log_group" "ecs" {
+  name              = "/ecs/${var.project_name}"
+  retention_in_days = 7
+}
+
+################################
 # ECS Cluster
 ################################
 module "ecs" {
@@ -86,7 +95,7 @@ module "ecs" {
 
   cluster_name = "${var.project_name}-cluster"
 
-  # 🔑 IMPORTANT FIX
+  # We create log group manually
   create_cloudwatch_log_group = false
 }
 
@@ -131,6 +140,10 @@ resource "aws_ecs_task_definition" "app" {
 # ECS Service (Fargate)
 ################################
 resource "aws_ecs_service" "app" {
+  depends_on = [
+    aws_cloudwatch_log_group.ecs
+  ]
+
   name            = var.project_name
   cluster         = module.ecs.cluster_id
   task_definition = aws_ecs_task_definition.app.arn
@@ -138,7 +151,7 @@ resource "aws_ecs_service" "app" {
   desired_count   = 1
 
   network_configuration {
-    subnets          = module.vpc.private_subnets
+    subnets          = module.vpc.public_subnets
     security_groups  = [aws_security_group.ecs.id]
     assign_public_ip = true
   }
