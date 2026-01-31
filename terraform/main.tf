@@ -1,3 +1,6 @@
+################################
+# Terraform & Provider
+################################
 terraform {
   required_version = ">= 1.5.0"
 
@@ -21,7 +24,8 @@ variable "project_name" {
 }
 
 variable "container_image" {
-  type = string
+  description = "ECR image URI"
+  type        = string
 }
 
 variable "container_port" {
@@ -29,11 +33,12 @@ variable "container_port" {
 }
 
 variable "ecs_task_execution_role_arn" {
-  type = string
+  description = "ECS Task Execution Role ARN"
+  type        = string
 }
 
 ################################
-# VPC (NO NAT = NO EIP ERROR)
+# VPC (NO NAT → NO EIP ERROR)
 ################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -56,6 +61,7 @@ resource "aws_security_group" "ecs" {
   vpc_id = module.vpc.vpc_id
 
   ingress {
+    description = "Allow application traffic"
     from_port   = var.container_port
     to_port     = var.container_port
     protocol    = "tcp"
@@ -78,6 +84,9 @@ module "ecs" {
   version = "5.11.4"
 
   cluster_name = "${var.project_name}-cluster"
+
+  # 🔑 IMPORTANT: avoid CloudWatch log group conflict
+  create_cloudwatch_log_group = false
 }
 
 ################################
@@ -87,8 +96,9 @@ resource "aws_ecs_task_definition" "app" {
   family                   = var.project_name
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
-  cpu                      = 256
-  memory                   = 512
+
+  cpu    = 256
+  memory = 512
 
   execution_role_arn = var.ecs_task_execution_role_arn
 
@@ -118,7 +128,7 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 ################################
-# ECS Service
+# ECS Service (Fargate)
 ################################
 resource "aws_ecs_service" "app" {
   name            = var.project_name
@@ -132,4 +142,14 @@ resource "aws_ecs_service" "app" {
     security_groups  = [aws_security_group.ecs.id]
     assign_public_ip = true
   }
+
+  deployment_minimum_healthy_percent = 50
+  deployment_maximum_percent         = 200
+}
+
+################################
+# Outputs
+################################
+output "ecs_cluster_name" {
+  value = module.ecs.cluster_name
 }
