@@ -1,6 +1,3 @@
-################################
-# Terraform & Provider
-################################
 terraform {
   required_version = ">= 1.5.0"
 
@@ -24,8 +21,7 @@ variable "project_name" {
 }
 
 variable "container_image" {
-  description = "ECR image URI"
-  type        = string
+  type = string
 }
 
 variable "container_port" {
@@ -33,12 +29,11 @@ variable "container_port" {
 }
 
 variable "ecs_task_execution_role_arn" {
-  description = "Existing ECS Task Execution Role ARN"
-  type        = string
+  type = string
 }
 
 ################################
-# VPC
+# VPC (NO NAT = NO EIP ERROR)
 ################################
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -47,12 +42,10 @@ module "vpc" {
   name = "${var.project_name}-vpc"
   cidr = "10.0.0.0/16"
 
-  azs             = ["eu-north-1a", "eu-north-1b"]
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.11.0/24", "10.0.12.0/24"]
+  azs            = ["eu-north-1a", "eu-north-1b"]
+  public_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true
+  enable_nat_gateway = false
 }
 
 ################################
@@ -63,7 +56,6 @@ resource "aws_security_group" "ecs" {
   vpc_id = module.vpc.vpc_id
 
   ingress {
-    description = "Allow app traffic"
     from_port   = var.container_port
     to_port     = var.container_port
     protocol    = "tcp"
@@ -79,14 +71,6 @@ resource "aws_security_group" "ecs" {
 }
 
 ################################
-# CloudWatch Log Group
-################################
-resource "aws_cloudwatch_log_group" "ecs" {
-  name              = "/ecs/${var.project_name}"
-  retention_in_days = 7
-}
-
-################################
 # ECS Cluster
 ################################
 module "ecs" {
@@ -94,9 +78,6 @@ module "ecs" {
   version = "5.11.4"
 
   cluster_name = "${var.project_name}-cluster"
-
-  # We create log group manually
-  create_cloudwatch_log_group = false
 }
 
 ################################
@@ -137,13 +118,9 @@ resource "aws_ecs_task_definition" "app" {
 }
 
 ################################
-# ECS Service (Fargate)
+# ECS Service
 ################################
 resource "aws_ecs_service" "app" {
-  depends_on = [
-    aws_cloudwatch_log_group.ecs
-  ]
-
   name            = var.project_name
   cluster         = module.ecs.cluster_id
   task_definition = aws_ecs_task_definition.app.arn
@@ -155,14 +132,4 @@ resource "aws_ecs_service" "app" {
     security_groups  = [aws_security_group.ecs.id]
     assign_public_ip = true
   }
-
-  deployment_minimum_healthy_percent = 50
-  deployment_maximum_percent         = 200
-}
-
-################################
-# Outputs
-################################
-output "ecs_cluster_name" {
-  value = module.ecs.cluster_name
 }
