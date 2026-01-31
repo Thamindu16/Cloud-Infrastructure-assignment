@@ -31,7 +31,7 @@ jobs:
         run: aws sts get-caller-identity
 
       - name: Login to Amazon ECR
-        id: login-ecr          # ⭐ VERY IMPORTANT FIX
+        id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build and push Docker image
@@ -49,7 +49,7 @@ jobs:
         working-directory: terraform
         run: terraform init
 
-      - name: Terraform Apply (Deploy ECS)
+      - name: Terraform Apply
         working-directory: terraform
         run: |
           terraform apply -auto-approve \
